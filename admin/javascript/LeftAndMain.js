@@ -201,6 +201,25 @@ jQuery.noConflict();
 	
 				// set button to "submitting" state
 				$(button).addClass('loading');
+
+				// display a CMS notification when certain buttons are clicked
+				var buttonClicked = $(button).attr('name');
+				if (buttonClicked) {
+					switch (buttonClicked) {
+						case 'action_publish' :
+							statusMessage(ss.i18n._t('ModelAdmin.SAVEPUBLISH', 'Saving and Publishing'), 'good');
+						break;
+						case 'action_unpublish' :
+							statusMessage(ss.i18n._t('ModelAdmin.UNPUBLISH', 'Unpublishing page'), 'good');
+						break;
+						case 'action_delete' :
+							statusMessage(ss.i18n._t('ModelAdmin.DRAFTWASDELETED', 'Deleting draft.'), 'good');
+						break;
+						case 'action_save' :
+							statusMessage(ss.i18n._t('ModelAdmin.DRAFTSAVED', 'Saving draft.'), 'good');
+						break;
+					}
+				}
 	
 				// validate if required
 				if(!form.validate()) {
