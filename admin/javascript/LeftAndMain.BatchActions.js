@@ -222,11 +222,54 @@
 				
 				// apply callback, which might modify the IDs
 				var type = this.find(':input[name=Action]').val();
+
 				if(this.getActions()[type]) ids = this.getActions()[type].apply(this, [ids]);
 			
 				// write (possibly modified) IDs back into to the hidden field
 				this.setIDs(ids);
+
+				// if this is deleting check for child pages
+				if (type.indexOf("deletefromlive") != -1) {
+					// check with ajax if the id has children
+					jQuery.ajax({
+						url: 'admin/pages/checkforchildren',
+						type: 'POST',
+						data: this.serializeArray(),
+						success: function(data, status) {
+							if (data.children > 0) {
+								var confirmed = confirm(
+									"You have " + data.children + " sub pages.\n\n"
+									+ "Do your really want to delete?"
+								);
+								if (confirmed) {
+									self.ajaxrequest(type, tree, self);
+								} else {
+									return false;
+								}
+							} else {
+								self.ajaxrequest(type, tree, self);
+							}
+						},
+						dataType: 'json'
+					});
+				} else {
+					self.ajaxrequest(type, tree, self);
+				}
 				
+				return false;
+			},
+
+			/**
+			 * Function: ajaxrequest
+			 * 
+			 * The main ajax request has been moved into it's own function so validation can be performed via ajax first of all
+			 * 
+			 * Parameters:
+			 *  {String} url
+			 *  {Object} tree
+			 *  {Object} self
+			 */
+			ajaxrequest:  function(type, tree, self) {
 				// Reset failure states
 				tree.find('li').removeClass('failed');
 			
@@ -279,8 +322,6 @@
 					},
 					dataType: 'json'
 				});
-			
-				return false;
 			}
 		
 		});

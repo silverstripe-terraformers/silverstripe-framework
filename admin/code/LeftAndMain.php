@@ -81,6 +81,7 @@ class LeftAndMain extends Controller implements PermissionProvider {
 		'batchactions',
 		'BatchActionsForm',
 		'Member_ProfileForm',
+		'checkForChildren',
 	);
 
 	/**
@@ -369,6 +370,24 @@ class LeftAndMain extends Controller implements PermissionProvider {
 	 */
 	function ping() {
 		return 1;
+	}
+
+	/**
+	 * Return if any pages have any sub pages called via ajax
+	 */
+	function checkForChildren(SS_List $pages) {
+		$noPotentialOrphans = 0;
+		$params = $this->request->postVars();
+		$ids = split(',',$params['csvIDs']);
+		foreach ($ids as $id) {
+			// get any child pages
+			$children = ContentController::ChildrenOf($id);
+			foreach ($children as $child) {
+				$noPotentialOrphans++;
+			}
+		}
+
+		return Convert::raw2json(array('children' => $noPotentialOrphans));
 	}
 	
 	/**
