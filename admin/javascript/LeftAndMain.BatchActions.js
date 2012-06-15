@@ -237,26 +237,52 @@
 						data: this.serializeArray(),
 						success: function(data, status) {
 							if (data.children > 0) {
-								var confirmed = confirm(
-									"You have " + data.children + " sub pages.\n\n"
-									+ "Do your really want to delete?"
-								);
-								if (confirmed) {
-									self.ajaxrequest(type, tree, self);
-								} else {
-									return false;
-								}
+								var msg = 'This will affect ' + data.children + ' other pages<br />Please confirm if you want to continue';
+								self.dialogopen(type, tree, self, msg);
 							} else {
 								self.ajaxrequest(type, tree, self);
 							}
 						},
 						dataType: 'json'
 					});
+					$(this).dialog("destroy");
 				} else {
 					self.ajaxrequest(type, tree, self);
 				}
 				
 				return false;
+			},
+
+			/**
+			 * Function: dialogopen
+			 * 
+			 * This function calls a jquery-ui dialog box
+			 * 
+			 * Parameters:
+			 *  {String} url
+			 *  {Object} tree
+			 *  {Object} self
+			 *  {String} message
+			 */
+			dialogopen: function(type, tree, self, msg) {
+				$( "#dialog" ).dialog({
+					resizable: false,
+					height:140,
+					modal: false,
+					buttons: {
+						"Delete": function() {
+							$(this).dialog("close");
+							$(this).dialog("destroy");
+							self.ajaxrequest(type, tree, self);
+						},
+						Cancel: function() {
+							$(this).dialog("close");
+							$(this).dialog("destroy");
+						}
+					}
+				});
+				$("#dialog").html(msg);
+				$("#dialog").dialog("open");
 			},
 
 			/**

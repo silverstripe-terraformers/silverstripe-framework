@@ -18,6 +18,10 @@
 			<div class="cms-preview-controls south"></div>
 		</div>
 	</div>
+	<div id="dialog">
+  		Are you sure about this?
+	</div>
+
 	
 	$EditorToolbar
 </body>
