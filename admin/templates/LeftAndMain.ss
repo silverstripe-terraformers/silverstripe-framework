@@ -19,7 +19,6 @@
 		</div>
 	</div>
 	<div id="dialog">
-  		Are you sure about this?
 	</div>
 
 	

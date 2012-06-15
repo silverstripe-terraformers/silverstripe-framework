@@ -283,6 +283,7 @@
 				});
 				$("#dialog").html(msg);
 				$("#dialog").dialog("open");
+				$("#dialog").dialog({dialogClass: "batchActionConfirmation"});
 			},
 
 			/**

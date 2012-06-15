@@ -1893,6 +1893,27 @@ form.import-form {
 	}
 }
 
+/** --------------------------------------------
+ * Batch Actions Confirmation
+ * -------------------------------------------- */
 
+ .batchActionConfirmation {
+ 	background-color:white;
+ 	background-image:none;
+ 	.ui-dialog-titlebar {
+ 		display:none;
+ 	}
+ 	#dialog {
+ 		background-color:$color-cms-batchactions-dialog-warning;
+ 		margin: 20px 20px 0 20px;
+		-moz-border-radius: 4px;
+		-webkit-border-radius: 4px;
+		-khtml-border-radius: 4px;
+		border-radius: 4px;
+ 	}
+ 	.ui-dialog-buttonpane {
+
+ 	}
+ }
 
 
