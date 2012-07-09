@@ -93,10 +93,10 @@ class GridFieldFilterHeader implements GridField_HTMLProvider, GridField_DataMan
 		$filterArguments = $state->Columns->toArray();
 		foreach($filterArguments as $columnName => $value ) {
 			if($dataList->canFilterBy($columnName) && $value) {
-				$dataList->filter($columnName.':PartialMatch', $value);
+				$dataListClone = $dataList->filter($columnName.':PartialMatch', $value);
 			}
 		}
-		return $dataList;
+		return ($dataListClone) ? $dataListClone : $dataList;
 	}
 
 	public function getHTMLFragments($gridField) {
