@@ -200,6 +200,19 @@
 			 * Function: onclick
 			 */
 			onclick: function(e) {
+
+				// if we are deleting/restoring a page we need to set a class on the site tree
+				form = $('.cms-edit-form').get(0),
+				id = form ? $(form.ID).val() : null,
+				btnName = $(this).attr("name");
+				if ($.isNumeric(id) && (btnName == 'action_delete' || btnName == 'action_unpublish')) {
+					$('.jstree-no-checkboxes ul li[id=record-' + id + '] a span.item').css('text-decoration','line-through');
+					//$('.jstree-no-checkboxes ul li[id=record-' + id + '] a span.item').addClass('');
+				}
+				if ($.isNumeric(id) && (btnName == 'action_revert' || btnName == 'action_publish')) {
+					$('.jstree-no-checkboxes ul li[id=record-' + id + '] a span.item').css('text-decoration','');
+					//$('.jstree-no-checkboxes ul li[id=record-' + id + '] a span.item').removeClass('');
+				}
 				this.parents('form').trigger('submit', [this]);
 				e.preventDefault();
 				return false;
