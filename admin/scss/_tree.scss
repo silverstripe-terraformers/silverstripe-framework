@@ -638,4 +638,16 @@ li.class-ErrorPage > a .jstree-pageicon {
 	a.jstree-loading .jstree-pageicon {
 		background: url(../images/throbber.gif) top left no-repeat;
 	}
+	.unpublished-state {
+		color:$color-bad;
+	}
+	.delete-state {
+		text-decoration:line-through;
+	}
+	.not-published {
+		color:$color-warning;
+	}
+	.unsaved {
+		background:$color-warning;
+	}
 }
