@@ -56,7 +56,12 @@ jQuery.noConflict();
 			// Show message (but ignore aborted requests)
 			if(xhr.status !== 0 && msg && $.inArray(msg, ignoredMessages)) {
 				// Decode into UTF-8, HTTP headers don't allow multibyte
-				statusMessage(decodeURIComponent(msg), msgType);
+				if (msgType == 'good') {
+					statusMessage(decodeURIComponent(msg), msgType);
+				} else {
+					msg = ss.i18n._t('LeftAndMain.ERRORFORMREQUEST','There has been an error with your form request');
+					errorMessage(decodeURIComponent(msg));
+				}
 			}
 		});
 		
@@ -237,13 +242,17 @@ jQuery.noConflict();
 						$(button).removeClass('loading');
 					},
 					success: function(data, status, xhr) {
-						form.removeClass('changed'); // TODO This should be using the plugin API
-						if(callback) callback(data, status, xhr);
+						if (status == 'success') {
+							form.removeClass('changed'); // TODO This should be using the plugin API
+							if(callback) callback(data, status, xhr);
 
-						var newContentEls = self.handleAjaxResponse(data, status, xhr);
-						if(!newContentEls) return;
+							var newContentEls = self.handleAjaxResponse(data, status, xhr);
+							if(!newContentEls) return;
 
-						newContentEls.filter('form').trigger('aftersubmitform', {status: status, xhr: xhr, formData: formData});
+							newContentEls.filter('form').trigger('aftersubmitform', {status: status, xhr: xhr, formData: formData});
+						}
+					},
+					error: function(data, status, xhr) {
 					}
 				}, ajaxOptions));
 	

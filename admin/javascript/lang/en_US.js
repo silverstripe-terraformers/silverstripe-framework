@@ -4,6 +4,7 @@ if(typeof(ss) == 'undefined' || typeof(ss.i18n) == 'undefined') {
 	ss.i18n.addDictionary('en_US', {
 		'LeftAndMain.CONFIRMUNSAVED': "Are you sure you want to navigate away from this page?\n\nWARNING: Your changes have not been saved.\n\nPress OK to continue, or Cancel to stay on the current page.",
 		'LeftAndMain.CONFIRMUNSAVEDSHORT': "WARNING: Your changes have not been saved.",
+		'LeftAndMain.ERRORFORMREQUEST' : "There has been an error with your form request",
 		'SecurityAdmin.BATCHACTIONSDELETECONFIRM': "Do you really want to delete %s groups?",
 		'ModelAdmin.SAVED': "Saved",
 		'ModelAdmin.REALLYDELETE': "Do you really want to delete?",
