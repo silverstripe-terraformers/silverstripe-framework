@@ -128,6 +128,9 @@ class GridFieldDataColumns implements GridField_ColumnProvider {
 			$method = $columnInfo['callback'];
 			$value = Convert::raw2xml($method($record));
 		
+		// are we displaying a thumbnail
+		} elseif ($columnName == 'StripThumbnail' && method_exists($record, 'getTag')) {
+			$value = $record->getTag();
 		// This supports simple FieldName syntax
 		} else {
 			$value = Convert::raw2xml($gridField->getDataFieldValue($record, $columnName));
