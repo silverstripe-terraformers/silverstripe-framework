@@ -89,6 +89,7 @@
 	z-index: 80;
 	background: $color-base;
 	width: ($grid-x * 24); // Removed right border as it clashes with different blues
+
 	@include box-shadow($color-shadow-blacker 0 0 3px);
 	a {
 		text-decoration: none;

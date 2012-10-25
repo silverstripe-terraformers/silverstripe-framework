@@ -12,8 +12,9 @@ if (jQuery && jLayout) {
 		 * This wraps jQuery objects in another object that supplies
 		 * the methods required for the layout algorithms.
 		 */
-		function wrap(item, resize) {
+		var wrap = $.jLayoutWrap = function(item, resize) {
 			var that = {};
+			that.item = item;
 
 			$.each(['min', 'max'], function (i, name) {
 				that[name + 'imumSize'] = function (value) {
@@ -29,11 +30,12 @@ if (jQuery && jLayout) {
 
 			$.extend(that, {
 				doLayout: function () {
-                    var l = item.data('jlayout');
-                    
-					if (l) {
-                        l.layout(that);
+					var l = item.data('jlayout');
+					if (l) l.layout(that);
+					else if (item.is('[data-layout-type]')) {
+						item.layout({resize: false});
 					}
+
 					item.css({position: 'absolute'});
 				},
 				isVisible: function () {

@@ -10,7 +10,7 @@
 		 * The admin UI itself is collapsible, leaving most screen space to this panel.
 		 *
 		 * Relies on the server responses to indicate if a preview URL is available for the 
-		 * currently loaded admin interface. If no preview is available, the panel is "blocked" 
+		 * currently loaded admin interface. If no preview is available, the panel is "blocked"
 		 * automatically.
 		 * 
 		 * Internal links within the preview iframe trigger a refresh of the admin panel as well,
@@ -40,11 +40,9 @@
 
 					// Load edit view for new page, but only if the preview is activated at the moment.
 					// This avoids e.g. force-redirections of the edit view on RedirectorPage instances.
-					if(!self.is('.is-collapsed')) self.loadCurrentPage();
+					self.loadCurrentPage();
 				});
 				
-				if(this.hasClass('is-expanded')) this.expand();
-				else this.collapse();
 				this.data('cms-preview-initialized', true);
 				
 				// Preview might not be available in all admin interfaces - block/disable when necessary
@@ -53,21 +51,18 @@
 				$('.cms-preview-toggle-link')[this.canPreview() ? 'show' : 'hide']();
 
 				self._fixIframeLinks();
-		
+				this.updatePreview();
+
 				this._super();
 			},
+
 			loadUrl: function(url) {
 				this.find('iframe').attr('src', url);
 			},
 
-			updateAfterXhr: function(){
-				$('.cms-preview-toggle-link')[this.canPreview() ? 'show' : 'hide']();
-
-				// Only load when panel is visible (see details in iframe load event handler).
-				if(this.is('.is-collapsed')) return;
-
-				// var url = ui.xmlhttp.getResponseHeader('x-frontend-url');
+			updatePreview: function() {
 				var url = $('.cms-edit-form').choosePreviewLink();
+
 				if(url) {
 					this.loadUrl(url);
 					this.unblock();
@@ -76,21 +71,17 @@
 				}
 			},
 
+			updateAfterXhr: function(){
+				$('.cms-preview-toggle-link')[this.canPreview() ? 'show' : 'hide']();
+				this.updatePreview();
+			},
+
 			'from .cms-container': {
 				onaftersubmitform: function(){
 					this.updateAfterXhr();
 				},
 				onafterstatechange: function(){
 					this.updateAfterXhr();
-				}
-			},
-
-			// Toggle preview when new menu entry is selected.
-			// Only do this when preview is actually shown,
-			// to avoid auto-expanding the menu in normal CMS mode
-			'from .cms-menu-list li': {
-				onselect: function(){
-					if(!this.hasClass('is-collapsed')) this.collapse();
 				}
 			},
 
@@ -150,40 +141,7 @@
 				var naviMsg = doc.getElementById('SilverStripeNavigatorMessage');
 				if(naviMsg) naviMsg.style.display = 'none';
 			},
-			
-			expand: function(inclMenu) {
-				var self = this, containerEl = this.getLayoutContainer(), contentEl = containerEl.find('.cms-content');
-				this.show();
-				this.removeClass('east').addClass('center').removeClass('is-collapsed');
-				// this.css('overflow', 'auto');
-				contentEl.removeClass('center').hide();
-				this.find('iframe').show();
-				this.find('.cms-preview-toggle a').html('&raquo;');
-				this.find('.cms-preview-controls').show();
-				
-				if(this.data('cms-preview-initialized')) {
-					containerEl.find('.cms-menu').collapsePanel();
-				}
-				
-				containerEl.redraw();
-			},
-			
-			collapse: function() {
-				var self = this, containerEl = this.getLayoutContainer(), contentEl = containerEl.find('.cms-content');
-				this.addClass('east').removeClass('center').addClass('is-collapsed').width(10);
-				// this.css('overflow', 'hidden');
-				contentEl.addClass('center').show().css('visibility', 'visible');
-				this.find('iframe').hide();
-				this.find('.cms-preview-toggle a').html('&laquo;');
-				this.find('.cms-preview-controls').hide();
 
-				if(this.data('cms-preview-initialized')) {
-					containerEl.find('.cms-menu').expandPanel();
-				}
-				
-				containerEl.redraw();
-			},
-			
 			block: function() {
 				this.addClass('blocked');
 			},
@@ -196,13 +154,8 @@
 				return this.parents('.cms-container');
 			},
 			
-			toggle: function(bool) {
-				this[this.hasClass('is-collapsed') ? 'expand' : 'collapse']();
-			},
 			redraw: function() {
 				if(window.debug) console.log('redraw', this.attr('class'), this.get(0));
-				
-				this.layout({resize: false});
 			}
 		});
 		
@@ -237,33 +190,14 @@
 			}
 		});
 		
-		$('.cms-preview .cms-preview-toggle').entwine({
-			onclick: function(e) {
-				e.preventDefault();
-				this.parents('.cms-preview').toggle();
-			}
-		});
-		
 		$('.cms-switch-view a').entwine({
 			onclick: function(e) {
 				e.preventDefault();
 				var preview = $('.cms-preview');
-				preview.toggle(true);
 				preview.loadUrl($(e.target).attr('href'));
 			}
 		});
 		
-		$('.cms-menu li').entwine({
-			onclick: function(e) {
-				// Prevent reloading of interface when opening the edit panel
-				if(this.hasClass('Menu-CMSMain')) {
-					var preview = $('.cms-preview');
-					preview.toggle(true);
-					e.preventDefault();
-				}
-			}
-		});
-
 		$('.cms-preview .cms-preview-states').entwine({
 			onmatch: function() {
 				this.find('a').addClass('disabled');
@@ -293,15 +227,10 @@
 		$('.cms-preview-toggle-link').entwine({
 			onclick: function(e) {
 				e.preventDefault();
-				
-				var preview = $('.cms-preview'),
-					url = $('.cms-edit-form').choosePreviewLink();
-					
-				if(url) {
-						preview.loadUrl(url);
-						preview.unblock();
-						preview.toggle();
-				}
+
+				var content = $('.cms-content');
+				content.toggleClass('is-collapsed');
+				content.parent().redraw();
 			}
 		});
 

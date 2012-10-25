@@ -846,11 +846,9 @@ body.cms {
 		padding-right: 1em;
 	}
 }
+
 .cms-preview {
-	display: none;
-	width: 1px; // collapsed by default
-	z-index: 100;
-		
+
 	.cms-preview-toggle {
 		width: 10px;
 		cursor: pointer;
@@ -907,7 +905,7 @@ body.cms {
 	}
 	
 	.cms-preview-controls {
-		z-index: 99;
+		z-index: 1;
 		background: $color-widget-bg;
 		padding: 10px;
 		min-height: 30px;
@@ -1089,8 +1087,11 @@ form.member-profile-form {
 
 .cms {
 	.cms-content {
-		@include box-shadow(3px 0 4px rgba(0,0,0,0.15));
+		@include box-shadow(0 0 10px rgba(0,0,0,0.5));
 		@include border-radius(0);
+		background: $tab-panel-texture-background;
+		width: 800px;
+		z-index: 40;
 	}
 	
 	.cms-content-fields {
