@@ -815,7 +815,6 @@ jQuery.noConflict();
 				if(nonEmptyInputs.length) url = $.path.addSearchParams(url, nonEmptyInputs.serialize());
 
 				var container = this.closest('.cms-container');
-				container.find('.cms-edit-form').tabs('select',0);  //always switch to the first tab (list view) when searching
 				container.loadPanel(url);
 				return false;
 			},
