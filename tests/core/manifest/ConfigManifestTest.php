@@ -88,4 +88,51 @@ class ConfigManifestTest extends SapphireTest {
 		), 'after');
 	}
 
+	public function testMergeStrategy() {
+		$manifest = new SS_ConfigManifest(BASE_PATH, true, false);
+		
+		$into = array(
+			'Top' => array(
+				'Second' => array(
+					'Leaf1' => 'scalar',
+					'Leaf2' => array('another array')
+				)
+			)
+		);
+		
+		$normal = array(
+			'Top' => array(
+				'Second' => array(
+					'Leaf3' => 'scalar2',
+					'Leaf4' => array('more array')
+				)
+			)
+		);
+		
+		$replace = array(
+			'Second' => array(
+				'Leaf3' => 'scalar2',
+				'Leaf4' => 'all',
+			)
+		);
+		
+		$manifest->mergeInYamlFragment($into, $normal);
+		
+		$match = array(
+			'Leaf1' => 'scalar',
+			'Leaf2' => array('another array'),
+			'Leaf3' => 'scalar2',
+			'Leaf4' => array('more array')
+		);
+		$this->assertEquals($into['Top']['Second'], $match);
+		
+		$manifest->mergeInYamlFragment($into, $normal, array('Top/Second' => 'replace'));
+		
+		$match = array(
+			'Leaf3' => 'scalar2',
+			'Leaf4' => array('more array')
+		);
+		$this->assertEquals($into['Top']['Second'], $match);
+		
+	}
 }

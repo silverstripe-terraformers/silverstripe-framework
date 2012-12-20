@@ -89,6 +89,49 @@ They are much simpler. They consist of a list of key / value pairs. When applied
 
 - If the composite value is not an array, if that value matches any value in the mask it is removed
 
+### Customising the merge
+
+The behaviour of merging can be altered by providing a custom MergeStrategy directive with a configuration block. 
+
+For example, the following configuration makes use of the ReplaceYamlMergeStrategy class to completely replace a 
+config block instead of merging subsequent values
+
+Assume the following defined in core_code/_config/core.yml
+
+	---
+	Name: original_config
+	---
+    Injector:
+      Something:
+        constructor: 
+          - Page
+          - Sixth
+    
+And the following in my_custom_module/_config/override.yml
+
+	---
+	Name: second_bit
+	MergeStrategy: 
+	  Injector/Something: replace
+	---
+    Injector: 
+      Something:
+        constructor: 
+          - DataObject
+          - Monster
+
+
+The MergeStrategy entry of the metadata block defines a configuration_path:strategy pair;
+
+- **configuration_path** defines the array hierarchy that should be manipulated
+- **strategy** defines the YamlMergeStrategy implementation that should be used to handle the merge. 
+
+In the above example, a reference to `$config->get('Injector', 'Something');` would return an array containing
+`'constructor' => array('DataObject', 'Monster');`, as opposed to the default behaviour which would return an array
+containing `array('Page', 'Sixth', 'DataObject', 'Monster');`
+
+To handle the merge process in a custom way, simply define a class that implements YamlMergeStrategy
+
 ## Reading and updating configuration via the Config class
 
 The Config class is both the primary manner of getting configuration values and one of the locations you can set

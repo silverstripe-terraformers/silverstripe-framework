@@ -144,8 +144,64 @@ class ConfigTest extends SapphireTest {
 		Config::merge_array_high_into_low($result, array('C' => array('Bar' => 3, 'Baz' => 4)));
 		$this->assertEquals($result,
 			array('A' => 1, 'B' => 2, 'C' => array('Foo' => 1, 'Bar' => 3, 'Baz' => 4), 'D' => 3));
-	}
+		
+		// test specific ordering of output values, not just that they exist
+		$result = array('dev' => 'sc');
+		Config::merge_array_high_into_low($result, array('first' => 'First', 'second' => 'Second', 'last' => 'Last'));
+		$this->assertEquals($result, array(
+			'first' => 'First', 
+			'second' => 'Second', 
+			'last' => 'Last',
+			'dev' => 'sc',
+		));
 
+		$keys = array_keys($result);
+		$this->assertEquals($keys[0], 'first');
+		$this->assertEquals($keys[3], 'dev');
+
+		// If a higher priority item has a non-integer key which is the same as a lower priority item, the value of
+		// those items  is merged using these same rules, and the result of the merge is located in the same location the
+		// higher priority item would be if there was no key clash.
+
+		// First, check non-array subelements keep order of highest priority items
+
+		$result = array('Foo' => 1, 'Bar' => 2);
+		Config::merge_array_high_into_low($result, array('Bar' => 3, 'Foo' => 4));
+
+		$this->assertEquals(array_keys($result), array('Bar', 'Foo'));
+
+		// Then check array subelements do too
+
+		$result = array(
+			'Foo' => array('F1' => 1),
+			'Bar' => array('B1' => 1)
+		);
+		Config::merge_array_high_into_low($result, array(
+			'Bar' => array('B2' => 2),
+			'Foo' => array('F2' => 2),
+		));
+
+		$this->assertEquals(array_keys($result), array('Bar', 'Foo'));
+
+		// What about when there's a mix of associative & sequential keys?
+
+		$result = array(
+			'Foo' => 'FooL',
+			'Zap',
+			'Bar' => 'BarL',
+			'Baz' => 'BazL'
+		);
+		Config::merge_array_high_into_low($result, array(
+			'Bar' => 'BarH',
+			'Zop',
+			'Zup',
+			'Foo' => 'FooH'
+		));
+
+		$this->assertEquals(array_keys($result), array('Bar', 0, 1, 'Foo', 2, 'Baz'));
+		$this->assertEquals(array_values($result), array('BarH', 'Zop', 'Zup', 'FooH', 'Zap', 'BazL'));
+	}
+	
 	public function testStaticLookup() {
 		$this->assertEquals(Object::static_lookup('ConfigTest_DefinesFoo', 'foo'), 1);
 		$this->assertEquals(Object::static_lookup('ConfigTest_DefinesFoo', 'bar'), null);

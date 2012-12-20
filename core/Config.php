@@ -220,6 +220,21 @@ class Config {
 		}
 	}
 
+
+	/**
+	 * Retrieve a strategy for merging in configuration information
+	 */
+	protected static function merge_strategy($strategy = 'default') {
+		if (!is_string($strategy)) return;
+
+		$class = 'Config_MergeStrategy_'.ucfirst($strategy);
+		if (class_exists($class)) {
+			$strategy = Injector::inst()->get($class);
+			return $strategy;
+		}
+	}
+
+
 	/**
 	 * Merge a lower priority associative array into an existing higher priority associative array, as per the class
 	 * docblock rules
@@ -244,8 +259,12 @@ class Config {
 				// Throw error if types don't match
 				if ($currentType !== $newType) self::type_mismatch();
 
-				if ($currentType == self::IS_ARRAY) self::merge_array_low_into_high($dest[$k], $v);
-				else continue;
+				if ($currentType == self::IS_ARRAY) {
+					self::merge_array_low_into_high($dest[$k], $v);
+				}
+				else {
+					continue;
+				}
 			}
 			else {
 				$dest[$k] = $v;
@@ -264,13 +283,60 @@ class Config {
 	 * @param $dest array - The existing low priority associative array
 	 * @param $src array - The high priority array to merge in
 	 */
-	public static function merge_array_high_into_low(&$dest, $src) {
-		$res = $src;
-		self::merge_array_low_into_high($res, $dest);
-		$dest = $res;
+	public static function merge_array_high_into_low(&$dest, $src, $rule = array()) {
+
+		// We often want to add things to the beginning of dest, but this not possible to do in-place (with non-int keys).
+		// Instead we append items to $next and remove from $dest. At the end of the function everything left in $dest
+		// is appended to $next and that becomes the result
+		$next = array();
+
+		foreach ($src as $k => $v) {
+			$strategy = null;
+			if (isset($rule[$k]) && is_string($rule[$k])) {
+				$strategy = self::merge_strategy($rule[$k]);
+			}
+			if ($strategy) {
+				$strategy->mergeHighIntoLow($next, $dest, $k, $v, $rule[$k]);
+			} else {
+				// default handling
+				if (!$v) {
+					continue;
+				}
+				else if (is_int($k)) {
+					$next[] = $v;
+				}
+				else if (isset($dest[$k])) {
+					$newType = self::get_value_type($v);
+					$currentType = self::get_value_type($dest[$k]);
+
+					// Throw error if types don't match
+					if ($currentType !== $newType) self::type_mismatch();
+
+					if ($currentType == self::IS_ARRAY) {
+						$next[$k] = $dest[$k];
+
+						$subrule = isset($rule[$k]) ? $rule[$k] : array();
+						self::merge_array_high_into_low($next[$k], $v, $subrule);
+					}
+					else {
+						$next[$k] = $v;
+					}
+
+					unset($dest[$k]);
+				}
+				else {
+					$next[$k] = $v;
+				}
+			}
+		}
+
+		if ($next) {
+			$merged = array_merge($next, $dest);
+			$dest = $merged;
+		}
 	}
 
-	public static function merge_high_into_low(&$result, $value) {
+	public static function merge_high_into_low(&$result, $value, $rule = array()) {
 		if (!$value) return;
 		$newType = self::get_value_type($value);
 
@@ -281,8 +347,11 @@ class Config {
 			$currentType = self::get_value_type($result);
 			if ($currentType !== $newType) self::type_mismatch();
 
-			if ($currentType == self::ISNT_ARRAY) $result = $value;
-			else self::merge_array_high_into_low($result, $value);
+			if ($currentType == self::ISNT_ARRAY) {
+				$result = $value;
+			} else {
+				self::merge_array_high_into_low($result, $value, $rule);
+			}
 		}
 	}
 
@@ -533,5 +602,34 @@ class Config_ForClass {
 
 	public function forClass($class) {
 		return Config::inst()->forClass($class);
+	}
+}
+
+interface Config_MergeStrategy {
+	public function mergeHighIntoLow(&$next, &$current, $key, $value, $rule = array());
+}
+
+class Config_MergeStrategy_Remove implements Config_MergeStrategy {
+	public function mergeHighIntoLow(&$next, &$current, $key, $value, $rule = array()) {
+		unset($current[$key]);
+	}
+}
+
+class Config_MergeStrategy_Replace implements Config_MergeStrategy {
+	public function mergeHighIntoLow(&$next, &$current, $key, $value, $rule = array()) {
+		unset($current[$key]);
+		$next[$key] = $value;
+	}
+}
+
+class Config_MergeStrategy_Prepend implements Config_MergeStrategy {
+	public function mergeHighIntoLow(&$next, &$current, $key, $value, $rule = array()) {
+		$next[] = $value;
+	}
+}
+
+class Config_MergeStrategy_Append implements Config_MergeStrategy {
+	public function mergeHighIntoLow(&$next, &$current, $key, $value, $rule = array()) {
+		$current[] = $value;
 	}
 }

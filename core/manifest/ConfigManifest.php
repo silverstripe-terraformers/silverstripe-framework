@@ -489,7 +489,9 @@ class SS_ConfigManifest {
 			$failsonly = isset($fragment['only']) && !$this->matchesVariantRules($fragment['only']);
 			$matchesexcept = isset($fragment['except']) && $this->matchesVariantRules($fragment['except']);
 
-			if (!$failsonly && !$matchesexcept) $this->mergeInYamlFragment($this->yamlConfig, $fragment['fragment']);
+			if (!$failsonly && !$matchesexcept) {
+				$this->mergeInYamlFragment($this->yamlConfig, $fragment['fragment'], isset($fragment['mergestrategy']) ? $fragment['mergestrategy'] : array());
+			}
 		}
 
 		if ($cache) {
@@ -547,9 +549,27 @@ class SS_ConfigManifest {
 	 * @param  $fragment
 	 * @return void
 	 */
-	public function mergeInYamlFragment(&$into, $fragment) {
+	public function mergeInYamlFragment(&$into, $fragment, $rules=array()) {
+		$ruleset = array();
+		
+		foreach ($rules as $path => $strategy) {
+			$bits = explode('/', $path);
+			$enterInto = &$ruleset;
+			$entry = null;
+			// this builds the array structure
+			foreach ($bits as $entry) {
+				$enterInto[$entry] = array();
+				$enterInto = &$enterInto[$entry];
+			}
+			// and this sets the actual value
+			if ($entry) {
+				$enterInto = $strategy;
+			}
+		}
+
 		foreach ($fragment as $k => $v) {
-			Config::merge_high_into_low($into[$k], $v);
+			$rule = isset($ruleset[$k]) ? $ruleset[$k] : array();
+			Config::merge_high_into_low($into[$k], $v, $rule);
 		}
 	}
 
